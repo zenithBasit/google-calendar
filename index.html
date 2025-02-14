@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule a Meeting</title>
+</head>
+<body>
+    <h2>Schedule a Meeting</h2>
+    <form id="meetingForm">
+        <label>Title:</label>
+        <input type="text" id="title" required><br>
+
+        <label>Date:</label>
+        <input type="date" id="date" required><br>
+
+        <label>Start Time:</label>
+        <input type="time" id="startTime" required><br>
+
+        <label>End Time:</label>
+        <input type="time" id="endTime" required><br>
+
+        <label>Attendees (comma-separated emails):</label>
+        <input type="text" id="attendees"><br>
+
+        <button type="submit">Schedule Meeting</button>
+    </form>
+
+    <p id="result"></p>
+
+    <script>
+        document.getElementById("meetingForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const title = document.getElementById("title").value;
+            const date = document.getElementById("date").value;
+            const startTime = document.getElementById("startTime").value;
+            const endTime = document.getElementById("endTime").value;
+            const attendees = document.getElementById("attendees").value.split(",").map(email => email.trim());
+
+            const requestData = {
+                title: title,
+                startTime: `${date}T${startTime}:00Z`,
+                endTime: `${date}T${endTime}:00Z`,
+                attendees: attendees
+            };
+
+            try {
+                const response = await fetch("http://localhost:5000/api/create-meeting", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+                document.getElementById("result").innerHTML = `
+                    <p>${data.message}</p>
+                    <p>Meeting Link: <a href="${data.link}" target="_blank">${data.link}</a></p>
+                `;
+
+            } catch (error) {
+                console.error("Error scheduling meeting:", error);
+                document.getElementById("result").innerText = "Failed to create meeting";
+            }
+        });
+    </script>
+</body>
+</html>
